@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+
+<html lang="en" ng-app>
+  <head>
+    <meta charset ="utf-8"/>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+    <script src="../d3.v3.js"></script>
+    <script src="d3-grid.js"></script>
+    <title></title>
+  </head>
+  <body>
+    <div ng-controller='d3GridController'>
+          Rows (integer 0 - 10):
+          <input type="number" ng-model="opts.rows" name="rows"
+                 min="0" max="10" integer />{{opts.rows}}<br />
+          <span ng-show="form.size.$error.integer">This is not valid integer!</span>
+          <span ng-show="form.size.$error.min || form.size.$error.max">
+            The value must be in range 0 to 10!</span>
+    </div>
+    <script>
+      function d3GridController($scope) {
+        $scope.opts = { rows: 10 };
+
+        $scope.drawGrid = function () {
+          drawGrid($scope.opts)
+        }
+        $scope.$watch('opts', function () {
+          $scope.drawGrid()
+        }, true)
+      }
+
+      var width = 960,
+          height = 500;
+
+      var svg = d3.select("body").append("svg")
+        .attr({
+          width: width,
+          height: height
+        });
+
+      function drawGrid(opts) {
+        var color = d3.scale.category10();
+
+        var rectGrid = d3.layout.grid()
+                      .rows(opts.rows)
+                      .cols(1)
+                      .size([400, 400])
+                      .bands();
+
+        var rects = [];
+
+        d3.range(opts.rows).forEach(function (d) {
+          rects.push({});
+        })
+
+        var rect = svg.selectAll(".rect")
+          .data(rectGrid(rects));
+        rect.enter().append("rect")
+          .attr("class", "rect")
+          .attr("width", rectGrid.nodeSize()[0])
+          .attr("height", rectGrid.nodeSize()[1])
+          .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+          .style("fill", function(d,i) {return color(i);})
+          .style("opacity", 1e-6);
+        rect.transition()
+          .attr("width", rectGrid.nodeSize()[0])
+          .attr("height", rectGrid.nodeSize()[1])
+          .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+          .style("fill", function(d,i) {return color(i);})
+          .style("opacity", 1);
+        rect.exit().transition()
+          .style("opacity", 1e-6)
+          .remove();
+      }
+    </script>            
+  </body>
+</html>
